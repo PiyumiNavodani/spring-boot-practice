@@ -129,27 +129,29 @@ public class CustomerServiceImpl implements CustomerService {
     public ResponseDto<Customer> updateCustomer(Customer customer, Long id) {
         log.info("CustomerServiceImpl.updateCustomer() method access...");
         ResponseDto responseDto = new ResponseDto<>();
-        Optional<Customer> findCustomer = customerRepository.findById(id);
 
-        if(findCustomer.isPresent()){
+        if(customerRepository.findById(id).isEmpty()){
+            responseDto.setMessage("Customer Not Found");
+            responseDto.setStatus(HttpStatus.NOT_FOUND.value());
+            responseDto.setData(null);
 
-            Customer currentCustomer = findCustomer.get();
+            return responseDto;
+        }
+        if(customerRepository.existsByFirstNameAndLastNameAndIdNot(customer.getFirstName(), customer.getLastName(), id)){
+            responseDto.setMessage("Customer Already Exists");
+            responseDto.setStatus(HttpStatus.CONFLICT.value());
+            responseDto.setData(null);
+        }else {
+            Optional<Customer> optionalCustomer = customerRepository.findById(id);
+            Customer currentCustomer = optionalCustomer.get();
             currentCustomer.setFirstName(customer.getFirstName());
             currentCustomer.setLastName(customer.getLastName());
             currentCustomer.setEmail(customer.getEmail());
 
             customerRepository.save(currentCustomer);
-
-            CustomerDto updatedCustomer = modelMapper.map(customer, CustomerDto.class);
-            responseDto.setMessage("Customer Updated Succeddfully");
-            log.info("Customer Updated Succeddfully");
+            responseDto.setMessage("Customer Updated Successfully");
             responseDto.setStatus(HttpStatus.OK.value());
-            responseDto.setData(updatedCustomer);
-        }else {
-            responseDto.setMessage("Customer Not Found");
-            log.info("Customer Not Found");
-            responseDto.setStatus(HttpStatus.NOT_FOUND.value());
-            responseDto.setData(null);
+            responseDto.setData(currentCustomer);
         }
         return responseDto;
     }

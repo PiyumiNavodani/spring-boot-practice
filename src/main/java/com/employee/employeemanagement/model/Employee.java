@@ -1,7 +1,11 @@
 package com.employee.employeemanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * @auther piyumi_navodani
@@ -23,5 +27,9 @@ public class Employee {
 
     @Column(name = "email_id")
     private String emailId;
+
+    @OneToMany(mappedBy = "employee")
+    @JsonIgnoreProperties("employee")
+    Set<Contact> contactList;
 
 }

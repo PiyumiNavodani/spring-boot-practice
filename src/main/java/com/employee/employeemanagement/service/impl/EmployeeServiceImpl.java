@@ -1,9 +1,11 @@
 package com.employee.employeemanagement.service.impl;
 
+import com.employee.employeemanagement.dto.ContactDto;
 import com.employee.employeemanagement.dto.EmployeeDto;
 import com.employee.employeemanagement.dto.ResponseDto;
 import com.employee.employeemanagement.model.Contact;
 import com.employee.employeemanagement.model.Employee;
+import com.employee.employeemanagement.repo.ContactRepository;
 import com.employee.employeemanagement.repo.EmployeeRepository;
 import com.employee.employeemanagement.service.EmployeeService;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +32,9 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Autowired
     private EmployeeRepository employeeRepository;
 
+    @Autowired
+    ContactRepository contactRepository;
+
 //    @Override
 //    public Employee saveEmployee(Employee employee) {
 //        return employeeRepository.save(employee);
@@ -45,6 +50,16 @@ public class EmployeeServiceImpl implements EmployeeService {
         log.info("EmployeeServiceImpl.createEmployee() method access...");
         ResponseDto responseDto = new ResponseDto<>();
 
+        for (ContactDto c : employeeDto.getContactList()){
+            if (contactRepository.existsByMobileNumber(c.getMobileNumber())){
+                responseDto.setMessage("Contact number "+ c.getMobileNumber()+" already exists");
+                responseDto.setStatus(HttpStatus.CONFLICT.value());
+                responseDto.setData(null);
+
+                return responseDto;
+            }
+        }
+
         boolean uniqueEmployee = !employeeRepository.existsByFirstNameAndLastName(employeeDto.getFirstName(), employeeDto.getLastName());
 
         if(uniqueEmployee){
@@ -52,6 +67,13 @@ public class EmployeeServiceImpl implements EmployeeService {
             employee.setFirstName(employeeDto.getFirstName());
             employee.setLastName(employeeDto.getLastName());
             employee.setEmailId(employeeDto.getEmailId());
+
+            for (ContactDto c : employeeDto.getContactList()){
+                Contact contact = new Contact();
+                contact.setEmployee(employee);
+                contact.setMobileNumber(c.getMobileNumber());
+                contactRepository.save(contact);
+            }
 
             employeeRepository.save(employee);
 
@@ -77,7 +99,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public ResponseDto<List<Employee>> getAllEmployees() {
         log.info("EmployeeService.getAllEmployees() method access...");
-        ResponseDto<List<Employee>> responseDto = new ResponseDto<>();
+        ResponseDto responseDto = new ResponseDto<>();
 
 //        get all employee and assign it to the employeeList
         List<Employee> employeeList = employeeRepository.findAll();
@@ -148,28 +170,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     public ResponseDto<Employee> updateEmployee(Long id, Employee employee) {
         log.info("EmployeeService.updateEmployee() method access...");
         ResponseDto responseDto = new ResponseDto();
-//        Optional<Employee> employeeOptional = employeeRepository.findById(id);
-////        firstname, lastname, email
-//        if(employeeOptional.isPresent()){
-//            Employee currentEmployee = employeeOptional.get();
-//            currentEmployee.setFirstName(employee.getFirstName());
-//            currentEmployee.setLastName(employee.getLastName());
-//            currentEmployee.setEmailId(employee.getEmailId());
-//
-//            employeeRepository.save(currentEmployee);
-//
-//            EmployeeDto updatedEmployee = modelMapper.map(currentEmployee, EmployeeDto.class);
-//            responseDto.setMessage("Employee Updated");
-//            log.info("Employee Updated");
-//            responseDto.setStatus(HttpStatus.OK.value());
-//            responseDto.setData(updatedEmployee);
-//        }
-//        else {
-//            responseDto.setMessage("Employee Not Found");
-//            log.info("Employee Not Found");
-//            responseDto.setStatus(HttpStatus.NOT_FOUND.value());
-//            responseDto.setData(null);
-//        }
 
         //validate id
         if(employeeRepository.findById(id).isEmpty()){
@@ -183,7 +183,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             responseDto.setMessage("Employee Already Exists");
             responseDto.setStatus(HttpStatus.CONFLICT.value());
             responseDto.setData(null);
-            //methana else ekak thiyana nisa thamai return damme naththe
+            //there is an else condition so no need of a return
         }else {
             Optional<Employee> employeeOptional = employeeRepository.findById(id);
             Employee currentEmployee = employeeOptional.get();
@@ -197,7 +197,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             responseDto.setStatus(HttpStatus.OK.value());
             responseDto.setData(currentEmployee);
         }
-        //both if and else common return eka
+        //the common return for both if and else
         return responseDto;
     }
 
@@ -225,6 +225,17 @@ public class EmployeeServiceImpl implements EmployeeService {
             responseDto.setStatus(HttpStatus.NOT_FOUND.value());
             responseDto.setData(null);
         }
+        return responseDto;
+    }
+
+    @Override
+    public ResponseDto<?> employeeCount() {
+        ResponseDto responseDto = new ResponseDto<>();
+
+        responseDto.setMessage("Employee Count Retrieved");
+        responseDto.setStatus(HttpStatus.OK.value());
+        responseDto.setData(employeeRepository.count());
+
         return responseDto;
     }
 

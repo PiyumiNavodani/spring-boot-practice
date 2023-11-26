@@ -1,11 +1,12 @@
 package com.employee.employeemanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * @auther piyumi_navodani
+ * @author piyumi_navodani
  */
 @Entity
 @Table(name = "contact")
@@ -17,4 +18,9 @@ public class Contact {
 
     @Column(name = "mobile_number")
     private int mobileNumber;
+
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "employee_id")
+    @JsonIgnoreProperties("contact")
+    private Employee employee;
 }

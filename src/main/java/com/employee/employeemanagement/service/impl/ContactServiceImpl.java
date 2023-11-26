@@ -127,24 +127,27 @@ public class ContactServiceImpl implements ContactService {
     public ResponseDto<Contact> updateContact(Long id, Contact contact) {
         log.info("ContactServiceImpl.getContactById() method access...");
         ResponseDto responseDto = new ResponseDto();
-        Optional<Contact> contactOptional = contactRepository.findById(id);
 
-        if(contactOptional.isPresent()){
-            Contact currentContact = contactOptional.get();
+        if(contactRepository.findById(id).isEmpty()){
+            responseDto.setMessage("Contact Not Found");
+            responseDto.setStatus(HttpStatus.NOT_FOUND.value());
+            responseDto.setData(null);
+        }
+        if(contactRepository.existsByMobileNumber(contact.getMobileNumber())){
+            responseDto.setMessage("Contact Already Exists");
+            responseDto.setStatus(HttpStatus.CONFLICT.value());
+            responseDto.setData(null);
+        }else {
+            Optional<Contact> optionalContact = contactRepository.findById(id);
+            Contact currentContact = optionalContact.get();
+
             currentContact.setMobileNumber(contact.getMobileNumber());
 
             contactRepository.save(currentContact);
-            ContactDto updatedContact = modelMapper.map(currentContact, ContactDto.class);
 
-            responseDto.setMessage("Contact Updated");
-            log.info("Contact Updated");
+            responseDto.setMessage("Contact Updated Successfully");
             responseDto.setStatus(HttpStatus.OK.value());
-            responseDto.setData(updatedContact);
-        }else {
-            responseDto.setMessage("Contact Not Found");
-            log.info("Contact Not Found");
-            responseDto.setStatus(HttpStatus.NOT_FOUND.value());
-            responseDto.setData(null);
+            responseDto.setData(currentContact);
         }
         return responseDto;
     }

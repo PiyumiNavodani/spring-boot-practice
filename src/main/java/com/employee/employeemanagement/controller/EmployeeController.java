@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +86,12 @@ public class EmployeeController {
     public ResponseEntity<ResponseDto<Employee>> deleteEmployee(@PathVariable Long id){
         log.info("EmployeeController.deleteEmployee() method access...");
         ResponseDto responseDto= employeeService.deleteEmployee(id);
+        return ResponseEntity.status(responseDto.getStatus()).body(responseDto);
+    }
+
+    @GetMapping("/count")
+    public ResponseEntity<?> employeeCount(){
+        ResponseDto responseDto = employeeService.employeeCount();
         return ResponseEntity.status(responseDto.getStatus()).body(responseDto);
     }
 }

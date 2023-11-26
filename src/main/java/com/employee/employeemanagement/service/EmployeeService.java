@@ -18,4 +18,6 @@ public interface EmployeeService {
     ResponseDto<Employee> updateEmployee(Long id, Employee employeepg);
 
     ResponseDto<Employee> deleteEmployee(Long id);
+
+    ResponseDto<?>employeeCount();
 }
